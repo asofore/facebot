@@ -23,7 +23,9 @@ jobs:
       run: |
         git config --local user.name "GitHub Action"
         git config --local user.email "action@github.com"
-        git add output_directory
+        # Remove any embedded git repository from the index if it exists
+        git rm --cached -r output_directory/TogashiBot || echo "No embedded repo to remove"
+        git add output_directory  # أضف بقية الملفات
         git commit -m "Add decompressed files"
         git push
       env:
