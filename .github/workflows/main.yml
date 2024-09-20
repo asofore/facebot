@@ -1,12 +1,12 @@
-name: Decompress and Upload
+name: Decompress, Install Dependencies and Run
 
 on:
   push:
     branches:
-      - main
+      - main  # أو أي فرع آخر تريد
 
 jobs:
-  decompress:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
@@ -19,24 +19,20 @@ jobs:
     - name: Decompress 7z file
       run: 7z x TogashiBot.7z -o${{ github.workspace }}/output_directory
 
-    - name: Remove embedded git repositories if any
-      run: |
-        if [ -d "output_directory/TogashiBot/.git" ]; then
-          echo "Found an embedded git repository. Removing..."
-          rm -rf output_directory/TogashiBot/.git
-        fi
+    - name: Navigate to TogashiBot directory
+      run: cd output_directory/TogashiBot
 
-    - name: Configure Git
-      run: |
-        git config --local user.name "GitHub Action"
-        git config --local user.email "action@github.com"
+    - name: Install Python 3.9
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.9'  # يمكنك تغييره إلى '3.11' إذا كنت بحاجة لذلك
 
-    - name: Add and commit changes
+    - name: Install dependencies
       run: |
-        git add output_directory
-        git commit -m "Add decompressed files" || echo "No changes to commit"
+        cd output_directory/TogashiBot
+        pip install -r requr.txt  # تأكد من أن اسم الملف صحيح
 
-    - name: Push changes
-      run: git push
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    - name: Run main.py
+      run: |
+        cd output_directory/TogashiBot
+        python main.py
