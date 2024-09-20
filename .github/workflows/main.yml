@@ -3,7 +3,7 @@ name: Decompress and Upload
 on:
   push:
     branches:
-      - main  # تشغيل العملية عند دفع تغييرات إلى الفرع الرئيسي
+      - main
 
 jobs:
   decompress:
@@ -19,14 +19,24 @@ jobs:
     - name: Decompress 7z file
       run: 7z x TogashiBot.7z -o${{ github.workspace }}/output_directory
 
-    - name: Commit and push changes
+    - name: Remove embedded git repositories if any
+      run: |
+        if [ -d "output_directory/TogashiBot/.git" ]; then
+          echo "Found an embedded git repository. Removing..."
+          rm -rf output_directory/TogashiBot/.git
+        fi
+
+    - name: Configure Git
       run: |
         git config --local user.name "GitHub Action"
         git config --local user.email "action@github.com"
-        # Remove any embedded git repository from the index if it exists
-        git rm --cached -r output_directory/TogashiBot || echo "No embedded repo to remove"
-        git add output_directory  # أضف بقية الملفات
-        git commit -m "Add decompressed files"
-        git push
+
+    - name: Add and commit changes
+      run: |
+        git add output_directory
+        git commit -m "Add decompressed files" || echo "No changes to commit"
+
+    - name: Push changes
+      run: git push
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
