@@ -1,0 +1,30 @@
+name: Decompress and Upload
+
+on:
+  push:
+    branches:
+      - main  # تشغيل العملية عند دفع تغييرات إلى الفرع الرئيسي
+
+jobs:
+  decompress:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install p7zip
+      run: sudo apt-get install -y p7zip-full
+
+    - name: Decompress 7z file
+      run: 7z x -o$output_directory TogashiBot.7z
+
+    - name: Commit and push changes
+      run: |
+        git config --local user.name "GitHub Action"
+        git config --local user.email "action@github.com"
+        git add $output_directory
+        git commit -m "Add decompressed files"
+        git push
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
